@@ -60,9 +60,4 @@ app.use('/health', (req, res) => res.status(200).send('oke'));
 
 // ─── Start Server ─────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-if (process.env.VERCEL !== '1') {
-    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
-}
-
-// Export app cho Vercel serverless function
-export default app;
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
