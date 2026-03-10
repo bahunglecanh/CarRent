@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarRent - Premium Booking</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --bg-color: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --surface-hover: rgba(30, 41, 59, 0.9);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(67, 97, 238, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(247, 37, 133, 0.15), transparent 25%);
+            overflow-x: hidden;
+        }
+
+        /* Container Layouts */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+            display: none;
+            /* Toggle via JS */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .container.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Auth Screen */
+        .auth-wrapper {
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .auth-header i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px var(--primary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text);
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .auth-switch a {
+            color: var(--success);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        /* Dashboard Screen */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--surface);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--success));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* Data Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .data-table td {
+            background: var(--surface);
+            padding: 1.2rem 1rem;
+        }
+
+        .data-table tr td:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+
+        .data-table tr td:last-child {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .data-table tr {
+            transition: transform 0.2s ease;
+        }
+
+        .data-table tr:hover td {
+            background: var(--surface-hover);
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-cho-don {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .status-da-don {
+            background: rgba(76, 201, 240, 0.2);
+            color: var(--success);
+        }
+
+        .status-hoan-thanh {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            transform: translateX(150%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #toast.show {
+            transform: translateX(0);
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. AUTH SCREEN -->
+    <div id="authScreen" class="container active">
+        <div class="glass-panel auth-wrapper">
+            <div class="auth-header">
+                <i class="fa-solid fa-car-side"></i>
+                <h1 id="authTitle">Welcome Back</h1>
+                <p id="authSubtitle">Enter your details to access the dashboard</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn" id="loginBtn">
+                    <span>Sign In</span>
+                    <div class="loader"></div>
+                </button>
+                <div class="auth-switch">
+                    Don't have an account? <a href="#" id="showRegister">Sign up</a>
+                </div>
+            </form>
+
+            <!-- Register Form (Hidden by default) -->
+            <form id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="regUsername" class="form-control" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="regEmail" class="form-control" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="regPassword" class="form-control" placeholder="Create Password" required>
+                </div>
+                <button type="submit" class="btn" id="regBtn">
+                    <span>Create Account</span>
+                    <div class="loader"></div>
+                </button>
+                <div class="auth-switch">
+                    Already have an account? <a href="#" id="showLogin">Sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. DASHBOARD SCREEN -->
+    <div id="dashboardScreen" class="container">
+        <div class="dashboard-header">
+            <div>
+                <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-car-side"
+                        style="color: var(--primary)"></i> CarRent Bookings</h2>
+                <p style="color: var(--text-muted)">Manage your fleet and customer reservations</p>
+            </div>
+
+            <div class="user-profile">
+                <div class="avatar" id="userAvatar">A</div>
+                <div>
+                    <div id="userName" style="font-weight: 600; font-size: 0.95rem;">Admin User</div>
+                    <div id="userRole"
+                        style="font-size: 0.8rem; color: var(--success); text-transform: uppercase; letter-spacing: 1px;">
+                        Administrator</div>
+                </div>
+                <button id="logoutBtn" class="btn btn-outline"
+                    style="padding: 0.5rem 1rem; width: auto; margin-left: 1rem;">
+                    <i class="fa-solid fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 2rem;">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Car Plate</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody">
+                        <!-- Data injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST ALERT -->
+    <div id="toast">
+        <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+        <span id="toastMsg">Action successful</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CLIENT SIDE JAVASCRIPT FOR JWT INTEGRATION -->
+    <!-- ========================================== -->
+    <script>
+        // DOM Elements
+        const authScreen = document.getElementById('authScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        // App State
+        const API_URL = 'http://localhost:3000';
+
+        // Initialize App
+        function initApp() {
+            const token = localStorage.getItem('carrent_token');
+            if (token) {
+                // If token exists, try to get user data to verify it
+                verifyTokenAndLoadDashboard(token);
+            } else {
+                showScreen('auth');
+            }
+        }
+
+        // Screen Toggles
+        function showScreen(screen) {
+            authScreen.classList.remove('active');
+            dashboardScreen.classList.remove('active');
+
+            setTimeout(() => {
+                if (screen === 'auth') authScreen.classList.add('active');
+                if (screen === 'dashboard') dashboardScreen.classList.add('active');
+            }, 300);
+        }
+
+        document.getElementById('showRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            document.getElementById('authTitle').innerText = 'Create Account';
+            document.getElementById('authSubtitle').innerText = 'Join our premium car rental service';
+        });
+
+        document.getElementById('showLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            document.getElementById('authTitle').innerText = 'Welcome Back';
+            document.getElementById('authSubtitle').innerText = 'Enter your details to access the dashboard';
+        });
+
+        // Toast functionality
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.querySelector('#toastMsg').innerText = msg;
+
+            if (type === 'error') {
+                toast.style.borderLeftColor = 'var(--danger)';
+                toast.querySelector('i').className = 'fa-solid fa-circle-exclamation';
+                toast.querySelector('i').style.color = 'var(--danger)';
+            } else {
+                toast.style.borderLeftColor = 'var(--success)';
+                toast.querySelector('i').className = 'fa-solid fa-circle-check';
+                toast.querySelector('i').style.color = 'var(--success)';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function toggleLoader(btnId, show) {
+            const btn = document.getElementById(btnId);
+            const span = btn.querySelector('span');
+            const loader = btn.querySelector('.loader');
+
+            if (show) {
+                span.style.opacity = '0';
+                loader.style.display = 'block';
+                btn.disabled = true;
+            } else {
+                span.style.opacity = '1';
+                loader.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        // --- API CALLS ---
+
+        // Handle Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            toggleLoader('loginBtn', true);
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    // CỐT LÕI: LƯU JWT VÀO LOCAL STORAGE
+                    localStorage.setItem('carrent_token', data.token);
+                    showToast('Login successful!');
+                    verifyTokenAndLoadDashboard(data.token);
+                } else {
+                    showToast(data.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            } finally {
+                toggleLoader('loginBtn', false);
+            }
+        });
+
+        // Handle Register
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            toggleLoader('regBtn', true);
+
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            try {
+                const res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('carrent_token', data.token);
+                    showToast('Account created safely!');
+                    verifyTokenAndLoadDashboard(data.token);
+                } else {
+                    showToast(data.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            } finally {
+                toggleLoader('regBtn', false);
+            }
+        });
+
+        // Verify Token and Load User Data / Bookings
+        async function verifyTokenAndLoadDashboard(token) {
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // Update UI User profile
+                    document.getElementById('userName').innerText = data.user.username;
+                    document.getElementById('userRole').innerText = data.user.role;
+                    document.getElementById('userAvatar').innerText = data.user.username.charAt(0).toUpperCase();
+
+                    // Show Dashboard & Fetch Data
+                    showScreen('dashboard');
+                    fetchBookings(token);
+                } else {
+                    // Token invalid/expired -> Clear and show Auth
+                    localStorage.removeItem('carrent_token');
+                    showScreen('auth');
+                }
+            } catch (error) {
+                console.error('Error verifying token', error);
+                showScreen('auth');
+            }
+        }
+
+        // Fetch Bookings with Bearer Token
+        async function fetchBookings(token) {
+            const tbody = document.getElementById('bookingsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center"><div class="loader" style="display:inline-block; border-top-color:var(--primary); margin:2rem"></div></td></tr>';
+
+            try {
+                const res = await fetch(`${API_URL}/bookings`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const array = await res.json();
+                    renderBookings(array);
+                } else {
+                    if (res.status === 401) {
+                        showToast('Session expired, please login', 'error');
+                        logout();
+                    } else {
+                        showToast('Failed to load bookings', 'error');
+                    }
+                }
+            } catch (error) {
+                showToast('Error loading data', 'error');
+            }
+        }
+
+        // Render Bookings Data to Table
+        function renderBookings(bookings) {
+            const tbody = document.getElementById('bookingsTableBody');
+
+            if (bookings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-box-open"></i>
+                        <p>No bookings found in database</p>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+
+            let html = '';
+            bookings.forEach(b => {
+                const sDate = new Date(b.startDate).toLocaleDateString('en-GB');
+                const eDate = b.endDate ? new Date(b.endDate).toLocaleDateString('en-GB') : '-';
+                const amt = b.totalAmount ? parseInt(b.totalAmount).toLocaleString() + ' ₫' : 'Calculating...';
+
+                let badgeClass = 'status-cho-don';
+                let icon = 'fa-clock';
+                if (b.status === 'đã đón' || b.status === 'picked up') { badgeClass = 'status-da-don'; icon = 'fa-car'; }
+                if (b.status === 'hoàn thành' || b.status === 'completed') { badgeClass = 'status-hoan-thanh'; icon = 'fa-check-double'; }
+
+                html += `
+                <tr>
+                    <td><div style="font-weight:600">${b.customerName}</div></td>
+                    <td><div style="background:rgba(0,0,0,0.2); padding:4px 8px; border-radius:4px; display:inline-block; font-family:monospace; letter-spacing:1px">${b.carNumber}</div></td>
+                    <td>${sDate}</td>
+                    <td>${eDate}</td>
+                    <td style="font-weight:600; color:var(--success)">${amt}</td>
+                    <td><span class="status-badge ${badgeClass}"><i class="fa-solid ${icon}"></i> ${b.status}</span></td>
+                </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Logout
+        async function logout() {
+            const token = localStorage.getItem('carrent_token');
+            if (token) {
+                // Call API logout (nếu cần ghi log)
+                fetch(`${API_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).catch(e => console.log(e));
+
+                // CỐT LÕI CỦA JWT LOGOUT: Xóa token phía client
+                localStorage.removeItem('carrent_token');
+            }
+
+            showToast('Logged out safely');
+            showScreen('auth');
+
+            // clear form
+            document.getElementById('loginPassword').value = '';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Run app
+        initApp();
+    </script>
+</body>
+
+</html>
