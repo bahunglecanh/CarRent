@@ -88,6 +88,7 @@
             margin-bottom: 1rem;
             background: linear-gradient(135deg, var(--primary), var(--success));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -416,7 +417,26 @@
             </div>
         </div>
 
-        <div class="glass-panel" style="padding: 2rem;">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <button id="showBookCarModal" class="btn" style="width: auto;">
+                <i class="fa-solid fa-plus"></i> Book a Car
+            </button>
+            <button id="showCreateCarModal" class="btn btn-outline" style="width: auto; display: none;">
+                <i class="fa-solid fa-car"></i> Create Car
+            </button>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+            <button id="tabBookings" class="btn btn-outline" style="width: auto; border:none; border-bottom: 2px solid var(--primary); border-radius:0;">
+                <i class="fa-solid fa-list-check"></i> Bookings
+            </button>
+            <button id="tabCars" class="btn btn-outline" style="width: auto; border:none; border-radius:0;">
+                <i class="fa-solid fa-car"></i> Fleet Management
+            </button>
+        </div>
+
+        <!-- Bookings Section -->
+        <div id="sectionBookings" class="glass-panel" style="padding: 2rem;">
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
@@ -427,9 +447,31 @@
                             <th>End Date</th>
                             <th>Amount</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="bookingsTableBody">
+                        <!-- Data injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cars Section (Hidden by default) -->
+        <div id="sectionCars" class="glass-panel" style="padding: 2rem; display: none;">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Car Plate</th>
+                            <th>Capacity</th>
+                            <th>Price / Day</th>
+                            <th>Status</th>
+                            <th>Features</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="carsTableBody">
                         <!-- Data injected by JS -->
                     </tbody>
                 </table>
@@ -441,6 +483,139 @@
     <div id="toast">
         <i id="toastIcon" class="fa-solid fa-circle-check"></i>
         <span id="toastMsg">Action successful</span>
+    </div>
+
+    <!-- MODAL OVERLAY -->
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+    </style>
+
+    <!-- CREATE CAR MODAL -->
+    <div id="createCarModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-car" style="color: var(--success);"></i> Create New Car</h3>
+                <button class="modal-close" onclick="closeModal('createCarModal')"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form id="createCarForm">
+                <div class="form-group">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <input type="text" id="carNumber" class="form-control" placeholder="Car Plate Number" required>
+                </div>
+                <div class="form-group">
+                    <i class="fa-solid fa-users"></i>
+                    <input type="number" id="carCapacity" class="form-control" placeholder="Capacity (Seats)" required>
+                </div>
+                <div class="form-group">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <input type="number" id="carPrice" class="form-control" placeholder="Price Per Day (VND)" required>
+                </div>
+                <div class="form-group">
+                    <i class="fa-solid fa-list"></i>
+                    <input type="text" id="carFeatures" class="form-control" placeholder="Features (comma separated)">
+                </div>
+                <button type="submit" class="btn" id="createCarBtn">
+                    <span>Create Car</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- BOOK CAR MODAL -->
+    <div id="bookCarModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-calendar-plus" style="color: var(--primary);"></i> Book a Car</h3>
+                <button class="modal-close" onclick="closeModal('bookCarModal')"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form id="bookCarForm">
+                <div class="form-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="bookCustomer" class="form-control" placeholder="Customer Name" required>
+                </div>
+                <div class="form-group">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <select id="bookCarPlate" class="form-control" required>
+                        <option value="" disabled selected>Select a Car</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">Start Date</label>
+                        <input type="date" id="bookStartDate" class="form-control" style="padding-left: 1rem;" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">End Date</label>
+                        <input type="date" id="bookEndDate" class="form-control" style="padding-left: 1rem;" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="bookCarBtn" style="margin-top: 1rem;">
+                    <span>Confirm Booking</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+        </div>
     </div>
 
     <!-- ========================================== -->
@@ -466,6 +641,44 @@
                 showScreen('auth');
             }
         }
+
+        // Modal Controls
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        document.getElementById('showBookCarModal').addEventListener('click', () => openModal('bookCarModal'));
+        document.getElementById('showCreateCarModal').addEventListener('click', () => openModal('createCarModal'));
+
+
+        // Tab Logic
+        function switchTab(tab) {
+            const btnBookings = document.getElementById('tabBookings');
+            const btnCars = document.getElementById('tabCars');
+            const secBookings = document.getElementById('sectionBookings');
+            const secCars = document.getElementById('sectionCars');
+
+            if (tab === 'bookings') {
+                btnBookings.style.borderBottom = '2px solid var(--primary)';
+                btnCars.style.borderBottom = 'none';
+                secBookings.style.display = 'block';
+                secCars.style.display = 'none';
+                fetchBookings(localStorage.getItem('carrent_token'));
+            } else {
+                btnCars.style.borderBottom = '2px solid var(--primary)';
+                btnBookings.style.borderBottom = 'none';
+                secCars.style.display = 'block';
+                secBookings.style.display = 'none';
+                fetchCars(localStorage.getItem('carrent_token'));
+            }
+        }
+
+        document.getElementById('tabBookings').addEventListener('click', () => switchTab('bookings'));
+        document.getElementById('tabCars').addEventListener('click', () => switchTab('cars'));
 
         // Screen Toggles
         function showScreen(screen) {
@@ -609,9 +822,16 @@
                     document.getElementById('userRole').innerText = data.user.role;
                     document.getElementById('userAvatar').innerText = data.user.username.charAt(0).toUpperCase();
 
+                    if (data.user.role === 'admin') {
+                        document.getElementById('showCreateCarModal').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('showCreateCarModal').style.display = 'none';
+                    }
+
                     // Show Dashboard & Fetch Data
                     showScreen('dashboard');
                     fetchBookings(token);
+                    fetchCars(token);
                 } else {
                     // Token invalid/expired -> Clear and show Auth
                     localStorage.removeItem('carrent_token');
@@ -653,6 +873,86 @@
             }
         }
 
+        // Fetch Cars
+        async function fetchCars(token) {
+            const tbody = document.getElementById('carsTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center"><div class="loader" style="display:inline-block; border-top-color:var(--primary); margin:2rem"></div></td></tr>';
+
+            try {
+                const res = await fetch(`${API_URL}/cars`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const array = await res.json();
+                    renderCars(array);
+                } else {
+                    showToast('Failed to load cars', 'error');
+                }
+            } catch (error) {
+                showToast('Error loading cars', 'error');
+            }
+        }
+
+        // Render Cars
+        function renderCars(cars) {
+            const tbody = document.getElementById('carsTableBody');
+            const select = document.getElementById('bookCarPlate');
+            
+            // Populate select dropdown
+            if (select) {
+                select.innerHTML = '<option value="" disabled selected>Select a Car</option>';
+                cars.forEach(c => {
+                    if (c.status === 'available') {
+                        const opt = document.createElement('option');
+                        opt.value = c.carNumber;
+                        opt.textContent = `${c.carNumber} (${c.capacity} Seats)`;
+                        select.appendChild(opt);
+                    }
+                });
+            }
+
+            if (!tbody) return;
+            
+            if (cars.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-car"></i>
+                        <p>No cars available in fleet</p>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+
+            let html = '';
+            cars.forEach(c => {
+                let badgeClass = 'status-da-don';
+                if (c.status === 'rented') badgeClass = 'status-cho-don';
+                if (c.status === 'maintenance') badgeClass = 'status-hoan-thanh';
+
+                html += `
+                <tr>
+                    <td><div style="background:rgba(0,0,0,0.2); padding:4px 8px; border-radius:4px; display:inline-block; font-family:monospace; letter-spacing:1px">${c.carNumber}</div></td>
+                    <td>${c.capacity} Seats</td>
+                    <td style="font-weight:600; color:var(--success)">${parseInt(c.pricePerDay).toLocaleString()} ₫</td>
+                    <td><span class="status-badge ${badgeClass}">${c.status}</span></td>
+                    <td style="font-size: 0.85rem; color:var(--text-muted)">${c.features.join(', ') || '-'}</td>
+                    <td>
+                        <button onclick="deleteCar('${c._id}')" class="btn btn-outline" style="padding:0.4rem 0.8rem; font-size:0.8rem; width:auto; border-color:var(--danger); color:var(--danger);">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
         // Render Bookings Data to Table
         function renderBookings(bookings) {
             const tbody = document.getElementById('bookingsTableBody');
@@ -686,6 +986,18 @@
                     <td>${eDate}</td>
                     <td style="font-weight:600; color:var(--success)">${amt}</td>
                     <td><span class="status-badge ${badgeClass}"><i class="fa-solid ${icon}"></i> ${b.status}</span></td>
+                    <td>
+                        <div style="display:flex; gap:0.5rem;">
+                            ${b.status !== 'đã đón' && b.status !== 'hoàn thành' && b.status !== 'completed' && b.status !== 'picked up' ? `
+                                <button onclick="pickupBooking('${b._id}')" class="btn" style="padding:0.4rem 0.8rem; font-size:0.8rem; width:auto;">
+                                    Pickup
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteBooking('${b._id}')" class="btn btn-outline" style="padding:0.4rem 0.8rem; font-size:0.8rem; width:auto; border-color:var(--danger); color:var(--danger);">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
                 </tr>
                 `;
             });
@@ -714,6 +1026,145 @@
         }
 
         document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // --- NEW API CALLS (Create Car, Book Car) ---
+
+        // Handle Create Car
+        document.getElementById('createCarForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            toggleLoader('createCarBtn', true);
+
+            const token = localStorage.getItem('carrent_token');
+            const carNumber = document.getElementById('carNumber').value;
+            const capacity = parseInt(document.getElementById('carCapacity').value);
+            const pricePerDay = parseInt(document.getElementById('carPrice').value);
+            const featuresInput = document.getElementById('carFeatures').value;
+            const features = featuresInput ? featuresInput.split(',').map(f => f.trim()) : [];
+
+            try {
+                const res = await fetch(`${API_URL}/cars`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ carNumber, capacity, pricePerDay, features })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast('Car created successfully!');
+                    closeModal('createCarModal');
+                    document.getElementById('createCarForm').reset();
+                    fetchCars(token);
+                } else {
+                    showToast(data.message || 'Failed to create car', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Network error', 'error');
+            } finally {
+                toggleLoader('createCarBtn', false);
+            }
+        });
+
+        // Handle Book Car
+        document.getElementById('bookCarForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            toggleLoader('bookCarBtn', true);
+
+            const token = localStorage.getItem('carrent_token');
+            const customerName = document.getElementById('bookCustomer').value;
+            const carNumber = document.getElementById('bookCarPlate').value;
+            const startDate = document.getElementById('bookStartDate').value;
+            const endDate = document.getElementById('bookEndDate').value;
+
+            try {
+                const res = await fetch(`${API_URL}/bookings`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ customerName, carNumber, startDate, endDate })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast('Booking successful!');
+                    closeModal('bookCarModal');
+                    document.getElementById('bookCarForm').reset();
+                    // Refetch bookings to update table
+                    fetchBookings(token);
+                } else {
+                    showToast(data.message || 'Booking failed', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            } finally {
+                toggleLoader('bookCarBtn', false);
+            }
+        });
+
+        async function pickupBooking(id) {
+            if (!confirm('Confirm car pickup for this booking?')) return;
+            const token = localStorage.getItem('carrent_token');
+            try {
+                const res = await fetch(`${API_URL}/bookings/${id}/pickup`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    showToast('Car picked up successfully!');
+                    fetchBookings(token);
+                } else {
+                    const data = await res.json();
+                    showToast(data.message || 'Pickup failed', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        async function deleteBooking(id) {
+            if (!confirm('Are you sure you want to delete this booking?')) return;
+            const token = localStorage.getItem('carrent_token');
+            try {
+                const res = await fetch(`${API_URL}/bookings/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    showToast('Booking deleted');
+                    fetchBookings(token);
+                } else {
+                    showToast('Failed to delete', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        async function deleteCar(id) {
+            if (!confirm('Are you sure you want to delete this car? This may fail if it is referenced in bookings.')) return;
+            const token = localStorage.getItem('carrent_token');
+            try {
+                // We need to implement deleteCar in backend if not exists
+                const res = await fetch(`${API_URL}/cars/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    showToast('Car deleted');
+                    fetchCars(token);
+                } else {
+                    const data = await res.json();
+                    showToast(data.message || 'Failed to delete car', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
 
         // Run app
         initApp();

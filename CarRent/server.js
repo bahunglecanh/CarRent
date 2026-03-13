@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import bookingRoutes from './routes/bookingRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import carRoutes from './routes/carRoutes.js';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use((req, res, next) => {
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/auth', authRoutes);
 app.use('/bookings', bookingRoutes);
+app.use('/cars', carRoutes);
 app.use('/health', (req, res) => res.status(200).send('oke'));
 
 // ─── Start Server ─────────────────────────────────────────────
